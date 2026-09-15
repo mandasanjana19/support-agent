@@ -2,6 +2,8 @@
 
 An evaluation-first AI support agent built on the Kaggle Customer Support on Twitter dataset.
 
+Demo Link: https://drive.google.com/file/d/1HF4s3fBZubDoeRRUJqDuSg-FYRXyIXV2/view?usp=sharing
+
 ## System Architecture
 
 1. **Language & Runtime:** Python 3.14.6
@@ -27,3 +29,5 @@ This creates data\golden\golden_set.csv — 200 rows, gold_intent/gold_escalate/
 11. Labeling tool (so you can label fast without editing raw CSV by hand)
 Create eval/label_tool.py:
 12. python eval\label_tool.py. hand-lable real judgement calls
+13.pip install groq
+14. python src/agent.py --brand AppleSupport --message "My Apple Store order says delivered but I never got it, this is the second time!"
