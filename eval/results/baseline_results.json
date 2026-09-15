@@ -1,10 +1,10 @@
 {
-  "n_train": 140,
-  "n_test": 60,
-  "trivial_intent_accuracy": 0.95,
-  "trivial_intent_f1_macro": 0.3247863247863248,
-  "trivial_escalate_accuracy": 0.95,
-  "simple_intent_accuracy": 0.95,
-  "simple_intent_f1_macro": 0.3247863247863248,
-  "simple_escalate_accuracy": 0.06666666666666667
+  "n_train": 22,
+  "n_test": 10,
+  "trivial_intent_accuracy": 0.3,
+  "trivial_intent_f1_macro": 0.06593406593406594,
+  "trivial_escalate_accuracy": 1.0,
+  "simple_intent_accuracy": 0.3,
+  "simple_intent_f1_macro": 0.24081632653061222,
+  "simple_escalate_accuracy": 1.0
 }

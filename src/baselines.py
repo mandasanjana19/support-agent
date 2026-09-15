@@ -80,7 +80,7 @@ def evaluate(golden_path: str, seed: int = 42):
     df = load_labeled(golden_path)
     train_df, test_df = train_test_split(
         df, test_size=0.3, random_state=seed,
-        #stratify=df["gold_intent"] if df["gold_intent"].nunique() > 1 else None,
+        stratify=df["gold_intent"] if df["gold_intent"].nunique() > 1 else None,
     )
     print(f"Train: {len(train_df)} rows | Test: {len(test_df)} rows")
 

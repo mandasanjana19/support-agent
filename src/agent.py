@@ -24,7 +24,7 @@ from router import decide_routing     # noqa: E402
 
 load_dotenv()
 
-LLM_MODEL = "llama-3.3-70b-versatile"
+LLM_MODEL = "openai/gpt-oss-120b"
 
 _client = None
 
@@ -35,10 +35,14 @@ def get_client():
         api_key = os.environ.get("GROQ_API_KEY")
         if not api_key:
             raise RuntimeError("GROQ_API_KEY not set in .env file.")
+        # Strip trailing newlines/quotes if any exist
+        api_key = api_key.strip("'\" \t\r\n")
         _client = Groq(api_key=api_key)
     return _client
+
 def classify_intent(message: str) -> str:
     taxonomy_desc = "\n".join(f"- {name}: {desc}" for name, desc in TAXONOMY.items())
+    valid_keys = ", ".join(TAXONOMY.keys())
     prompt = f"""You are classifying a customer support tweet into exactly one intent.
 
 Intents:
@@ -46,16 +50,52 @@ Intents:
 
 Customer message: "{message}"
 
-Respond with ONLY the intent name (one of the keys above), nothing else."""
+Respond with ONLY one of these exact intent keys, nothing else, no punctuation, no explanation:
+{valid_keys}"""
 
     resp = get_client().chat.completions.create(
         model=LLM_MODEL,
-        max_tokens=30,
+        max_tokens=300,
+        temperature=0,
+        reasoning_effort="low",
         messages=[{"role": "user", "content": prompt}],
     )
-    raw = resp.choices[0].message.content.strip().lower().replace(" ", "_")
-    return raw if raw in TAXONOMY else "other"
+    raw = (resp.choices[0].message.content or "").strip().lower()
 
+    for key in TAXONOMY:
+        if key in raw:
+            return key
+
+    print(f"  [WARN] classify_intent got unmatched output: {raw!r} -> defaulting to 'other'")
+    return "other"
+
+# def classify_intent(message: str) -> str:
+#     taxonomy_desc = "\n".join(f"- {name}: {desc}" for name, desc in TAXONOMY.items())
+#     prompt = f"""You are classifying a customer support tweet into exactly one intent.
+
+# Intents:
+# {taxonomy_desc}
+
+# Customer message: "{message}"
+
+# Respond with ONLY the intent name (one of the keys above), nothing else."""
+
+#     resp = get_client().chat.completions.create(
+#         model=LLM_MODEL,
+#         max_tokens=30,
+#         messages=[{"role": "user", "content": prompt}],
+#     )
+#     raw = resp.choices[0].message.content.strip().lower()
+    
+#     # Check if any taxonomy key is present in the raw LLM output
+#     for key in TAXONOMY:
+#         if key in raw:
+#             return key
+            
+#     return "other"
+
+    # raw = resp.choices[0].message.content.strip().lower().replace(" ", "_")
+    # return raw if raw in TAXONOMY else "other"
 
 def draft_reply(message: str, intent: str, retrieved: list[dict]) -> str:
     if retrieved:
@@ -67,25 +107,60 @@ def draft_reply(message: str, intent: str, retrieved: list[dict]) -> str:
     else:
         examples_block = "(no similar historical examples found)"
 
-    prompt = f"""You are drafting a reply as this brand's support account, in their voice
-and style, based on how they have actually resolved similar issues before.
+    system_prompt = "You are an official customer support agent for AppleSupport on Twitter."
+    user_prompt = f"""Draft a short, helpful, on-brand reply (1-3 sentences) to this customer tweet.
 
 Customer's message (intent: {intent}): "{message}"
 
-Similar past resolutions from this brand's real history:
+Similar past resolutions from real support history:
 {examples_block}
 
-Write a short, on-brand reply (1-3 sentences, Twitter-appropriate). Match the
-tone and typical structure of the past replies above. Do not invent policy
-details (refund amounts, timelines) that aren't supported by the examples —
-if unsure, ask the customer to DM order/account details instead."""
+Do not invent specific policies or promises. If troubleshooting is required, ask them to DM details or iOS version."""
 
     resp = get_client().chat.completions.create(
-        model=LLM_MODEL,
-        max_tokens=200,
-        messages=[{"role": "user", "content": prompt}],
-    )
-    return resp.choices[0].message.content.strip()
+    model=LLM_MODEL,
+    max_tokens=400,
+    temperature=0.4,
+    reasoning_effort="low",
+    messages=[
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_prompt}
+    ],
+)
+    content = (resp.choices[0].message.content or "").strip()
+    if not content:
+        print("  [WARN] draft_reply got empty content from model")
+    return content
+
+# def draft_reply(message: str, intent: str, retrieved: list[dict]) -> str:
+#     if retrieved:
+#         examples_block = "\n\n".join(
+#             f'Past customer message: "{r["customer_message"]}"\n'
+#             f'Past brand reply: "{r["brand_reply"]}"'
+#             for r in retrieved
+#         )
+#     else:
+#         examples_block = "(no similar historical examples found)"
+
+#     prompt = f"""You are drafting a reply as this brand's support account, in their voice
+# and style, based on how they have actually resolved similar issues before.
+
+# Customer's message (intent: {intent}): "{message}"
+
+# Similar past resolutions from this brand's real history:
+# {examples_block}
+
+# Write a short, on-brand reply (1-3 sentences, Twitter-appropriate). Match the
+# tone and typical structure of the past replies above. Do not invent policy
+# details (refund amounts, timelines) that aren't supported by the examples —
+# if unsure, ask the customer to DM order/account details instead."""
+
+#     resp = get_client().chat.completions.create(
+#         model=LLM_MODEL,
+#         max_tokens=200,
+#         messages=[{"role": "user", "content": prompt}],
+#     )
+#     return resp.choices[0].message.content.strip()
 
 def run_agent(brand: str, message: str, exclude_customer_message: str | None = None,
               retriever: HistoricalRetriever | None = None) -> dict:
@@ -114,4 +189,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     result = run_agent(args.brand, args.message)
-    print(json.dumps(result, indent=2))
+    print(json.dumps(result, indent=2, ensure_ascii=False))

@@ -17,7 +17,7 @@ RISK_KEYWORDS = [
 # Intents that should always route to a human regardless of confidence —
 # these are judgment calls tied to your brand/risk tolerance, stated here
 # explicitly so they can be debated/changed, not buried in prompt text.
-ALWAYS_ESCALATE_INTENTS = {"account_access"}
+ALWAYS_ESCALATE_INTENTS = {"apple_id_account"}
 
 LOW_CONFIDENCE_SIMILARITY_THRESHOLD = 0.12
 

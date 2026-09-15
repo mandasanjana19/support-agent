@@ -2,6 +2,7 @@ venv/
 __pycache__/
 *.pyc
 .env 
+Add-Content .gitignore "`n.env"
 data/raw/ 
 #ignore data/raw: full kaggle CSV is huge and shouldn't live in git.
 .streamlit/
