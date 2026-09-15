@@ -1,9 +1,9 @@
 {
-  "n_test": 10,
-  "agent_intent_accuracy": 0.5,
-  "agent_intent_f1_macro": 0.5208333333333333,
-  "agent_escalate_accuracy": 0.9,
-  "judge_groundedness_mean": 5.0,
-  "judge_tone_fit_mean": 4.9,
-  "judge_helpfulness_mean": 4.8
+  "n_test": 60,
+  "agent_intent_accuracy": 0.6666666666666666,
+  "agent_intent_f1_macro": 0.6918569813306655,
+  "agent_escalate_accuracy": 0.9333333333333333,
+  "judge_groundedness_mean": 4.866666666666666,
+  "judge_tone_fit_mean": 4.7,
+  "judge_helpfulness_mean": 4.716666666666667
 }

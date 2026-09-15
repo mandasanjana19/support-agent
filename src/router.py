@@ -2,12 +2,15 @@
 Phase 6b: Decide auto-handle vs escalate, with a stated reason.
 
 Combines:
-  - Rule-based risk signals (fast, deterministic, auditable)
+  - Rule-based risk signals (fast, deterministic, auditable) — matched on
+    whole-word boundaries to avoid false positives like "sue" inside "issues"
   - Retrieval confidence (low similarity to any historical resolution
     means we have no good precedent to ground a reply in -> escalate)
   - Intent-based policy (some intents are policy-escalated regardless
     of confidence, e.g. account security)
 """
+
+import re
 
 RISK_KEYWORDS = [
     "fraud", "hacked", "hack", "lawyer", "lawsuit", "legal action",
@@ -22,10 +25,23 @@ ALWAYS_ESCALATE_INTENTS = {"apple_id_account"}
 LOW_CONFIDENCE_SIMILARITY_THRESHOLD = 0.12
 
 
-def decide_routing(message: str, intent: str, retrieved: list[dict]) -> dict:
-    lower = message.lower()
+def _keyword_hits(text: str, keywords: list[str]) -> list[str]:
+    """
+    Whole-word matching via regex word boundaries. Plain substring matching
+    (e.g. `kw in lower`) incorrectly matches "sue" inside "issues", "tissue",
+    "pursue", etc. \\b anchors ensure only standalone word matches count.
+    """
+    lower = text.lower()
+    hits = []
+    for kw in keywords:
+        pattern = r'\b' + re.escape(kw) + r'\b'
+        if re.search(pattern, lower):
+            hits.append(kw)
+    return hits
 
-    hit_keywords = [kw for kw in RISK_KEYWORDS if kw in lower]
+
+def decide_routing(message: str, intent: str, retrieved: list[dict]) -> dict:
+    hit_keywords = _keyword_hits(message, RISK_KEYWORDS)
     if hit_keywords:
         return {
             "escalate": True,
