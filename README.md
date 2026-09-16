@@ -7,7 +7,7 @@ AppleSupport has historically resolved similar issues, and (3) decides
 whether the message can be auto-handled or should be escalated to a human,
 with a stated reason.
 
-Full write-up: `report.docx` / `report.tex` (compiled `report.pdf`).
+Full write-up: `project_report.pdf`.
 Non-obvious decisions: `decision_log.md`.
 
 ---
@@ -21,12 +21,12 @@ Non-obvious decisions: `decision_log.md`.
 | Escalation accuracy | 0.98 | 0.95 | 0.93 |
 
 (Escalation accuracy is misleading in isolation due to severe label
-imbalance — see `report.docx` Section 5, "What is misleading about my
+imbalance — see `project_report.pdf` Section 5, "What is misleading about my
 headline number?")
 
 LLM-judge reply quality (0–5): groundedness 4.87, tone fit 4.70,
 helpfulness 4.72. Judge↔human agreement (n=20): groundedness MAE 0.20,
-tone fit MAE 0.25, helpfulness MAE 0.90 — see report for full table and
+tone fit MAE 0.25, helpfulness MAE 0.90 — see `project_report.pdf` for full table and
 interpretation.
 
 ---
@@ -125,6 +125,8 @@ python src\agent.py --brand AppleSupport --message "My battery has been draining
 streamlit run app\streamlit_app.py
 ```
 
+**demo**: [▶ Open Demo](https://drive.google.com/file/d/1HF4s3fBZubDoeRRUJqDuSg-FYRXyIXV2/view?usp=sharing)
+
 ---
 
 ## Folder Structure
@@ -152,7 +154,7 @@ support-agent/
 │   └── results/                 # all output metrics/CSVs, committed
 ├── app/
 │   └── streamlit_app.py          # demo interface
-├── report.docx / report.tex       # full report
+├── project_report.pdf         # full report
 ├── decision_log.md
 └── requirements.txt
 ```
@@ -167,18 +169,18 @@ intents aren't excluded by chance), then randomly sampled within each
 cluster. Each example was manually labeled for `gold_intent`,
 `gold_escalate` (yes/no), and a short `gold_escalate_reason` using a custom
 resumable CLI tool (`eval/label_tool.py`). Full methodology and label
-distribution in `report.docx` Section 2.2.
+distribution in `project_report.pdf` Section 2.2.
 
 ---
 
 ## Known Limitations
 
 - Golden set (n=200) has only 4 true `escalate=yes` examples — escalation
-  recall cannot be reliably estimated. See report Section 5.
+  recall cannot be reliably estimated. See `project_report.pdf` Section 5.
 - Retrieval uses TF-IDF, not semantic embeddings (Python 3.14 dependency
   compatibility tradeoff — see `decision_log.md` item 1).
 - Single-turn grounding only; full multi-turn thread context is not used.
-- See `report.docx` Section 6 for the full "what we'd do next" list.
+- See `project_report.pdf` Section 6 for the full "what we'd do next" list.
 
 ---
 
